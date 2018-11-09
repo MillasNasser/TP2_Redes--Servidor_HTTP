@@ -238,3 +238,36 @@ char* sckt_recv(int sockfd){
 
 	return buffer;
 }
+
+/**
+ * Recebe dados pelo socket
+ *? @params:
+ **   socket: Socket a receber o dado
+ **   size: O tamanho do dado a ser recebido
+ *
+ *! @return: É retornado um vetor com o conteúdo lido */
+char* sckt_recvn(int sockfd, size_t size){
+	// Criando o buffer
+	char *buffer = malloc(size);
+
+	// Variaveis que irão gerenciar o loop
+	int erro = 0;
+	int bytes_read = 0;
+
+	while(bytes_read < size){
+		erro = read(
+			sockfd, 
+			buffer + bytes_read, 
+			size - bytes_read
+		);
+
+		if(erro < 0){
+			sckt_error("<Connect::sckt_recv> "
+				"Erro ao receber dados", errno);
+		}else{
+			bytes_read += erro;
+		}
+	}
+
+	return buffer;
+}

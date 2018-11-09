@@ -4,6 +4,7 @@
     #include "header_padrao.h"
 
 // Definições importantes
+    #define BUFF_SIZE 2048
 
     // Estrutura de retorno quando se aceita uma
     // conexão com usuários
@@ -16,10 +17,29 @@
 // Funções
 
     // Funções de envio e recebimento
-    //Envia dados
+    /** Envia dados pelo socket
+    *? @params:
+    **   socket: Socket a ser enviado o dado
+    **   buffer: O dado a ser enviado
+    **   bufSize: O tamanho do dado a ser enviado
+    *  
+    *! @return: É retornado quantos bytes foram enviados */
     int sckt_send(int sockfd, void *buffer, size_t bufSize);
-    //Recebe dados
+    
+    /** Recebe dados pelo socket
+    *? @params:
+    **   socket: Socket a receber o dado
+    *
+    *! @return: É retornado um vetor com o conteúdo lido */
     char* sckt_recv(int sockfd);
+
+    /** Recebe n bytes de dados pelo socket
+    *? @params:
+    **   socket: Socket a receber o dado
+    **   bufSize: O tamanho do dado a ser recebido
+    *
+    *! @return: É retornado um vetor com o conteúdo lido */
+    char* sckt_recvn(int sockfd, size_t size);
 
     // ********* Manipulação de sockets ********* //
     /** Cria um socket

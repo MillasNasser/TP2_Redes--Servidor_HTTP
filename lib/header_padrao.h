@@ -22,5 +22,4 @@
 
 	/* Definições importantes */
 	
-
 #endif // _HEADER_PADRAO_H_

@@ -43,7 +43,6 @@ void client(char *serv, int port){
 	del_socket(sockfd);
 }
 
-
 /**Argumento 1 indica a opção de execução: 
  *     - 0 é servidor
  *     - 1 é cliente
@@ -57,9 +56,28 @@ int main(int argc, char *argv[]) {
 	int porta = atoi(argv[2]);
 	int opcao = atoi(argv[1]);
 
+	int sockfd = new_socket();
+	struct sockaddr_in server;
+
+	bind_socket(sockfd, porta, &server);
+	listen(sockfd, 10);
+
+	clientent client;
+	sckt_accept(sockfd, &client);
+
+	char *resp = sckt_recvn(client.sockfd, BUFF_SIZE);
+	printf("%s\n", resp); free(resp);
+
+	del_socket(client.sockfd);
+	del_socket(sockfd);
+    return 0;
+}
+
+
+/* Coisa de testar depois */
+/*
 	switch(opcao){
 		case 0: server(porta); break;
 		case 1: client("127.0.0.1", porta); break;
 	}
-    return 0;
-}
+*/
