@@ -5,6 +5,7 @@
 
 // Definições importantes
     #define BUFF_SIZE 2048
+    #define PACK_SIZE 1024
 
     // Estrutura de retorno quando se aceita uma
     // conexão com usuários
@@ -25,6 +26,14 @@
     *  
     *! @return: É retornado quantos bytes foram enviados */
     int sckt_send(int sockfd, void *buffer, size_t bufSize);
+
+    /** Envia dados pelo socket
+    *? @params:
+    **   socket: Socket a ser enviado o dado
+    **   buffer: O dado a ser enviado
+    *  
+    *! @return: É retornado quantos bytes foram enviados */
+    int sckt_http_send(int sockfd, void *buffer);
     
     /** Recebe dados pelo socket
     *? @params:
@@ -40,6 +49,13 @@
     *
     *! @return: É retornado um vetor com o conteúdo lido */
     char* sckt_recvn(int sockfd, size_t size);
+
+    /** Recebe dados pelo socket (requisições http)
+    *? @params:
+    **   socket: Socket a receber o dado
+    *
+    *! @return: É retornado um vetor com o conteúdo lido */
+    char* sckt_http_recv(int sockfd, size_t bufSize);
 
     // ********* Manipulação de sockets ********* //
     /** Cria um socket

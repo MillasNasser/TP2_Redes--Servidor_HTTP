@@ -1,5 +1,5 @@
-/ *******select.c*********/
-/ *******Using select() for I/O multiplexing */
+/*******select.c*********/
+/*******Using select() for I/O multiplexing */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

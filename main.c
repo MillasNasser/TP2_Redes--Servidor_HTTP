@@ -1,46 +1,22 @@
-#include "connection.h"
+#include "servers.h"
+#include "servers.h"
 
-void server(int port){
-	char *resp;
+void func_resp(int sockfd){
+	char *resp = sckt_http_recv(sockfd, BUFF_SIZE);
+	printf("%s\n", resp); free(resp);
 
-	int sockfd = new_socket();
-	struct sockaddr_in server;
-	// Associou o socket a porta
-	bind_socket(sockfd, port, &server);
-
-	listen(sockfd, 10);
-	//while(1){
-		clientent client;
-		sckt_accept(sockfd, &client);
-
-		resp = sckt_recv(client.sockfd);
-		printf("%s: %s\n", inet_ntoa(
-			client.sock_addr.sin_addr),
-			resp); 
-
-		free(resp);
-
-		sckt_send(client.sockfd, "KKK EAE MEN", sizeof("KKK EAE MEN")+1);
-		del_socket(client.sockfd); //Não vai estar aqui :D
-	//}
-
-	del_socket(sockfd);
-}
-
-void client(char *serv, int port){
-	char *resp; 
-	int sockfd = new_socket();
-	struct hostent *server = new_host(serv);
-
-	sckt_connect(sockfd, server, port);
-	printf("Cliente conectou\n");
-
-	sckt_send(sockfd, "Olha aquui", sizeof("Olha aquui")+1);
-	resp = sckt_recv(sockfd);
-	printf("%s: %s\n",server->h_name, resp);
-	free(resp);
-
-	del_socket(sockfd);
+	sckt_http_send(sockfd, 
+		"HTTP/1.0 200 OK\n"
+		"\n"
+		"<html>\n"
+		"<head>\n"
+		"<title> Como assim? </title>\n"
+		"</head>\n"
+		"<body>\n"
+		"<h1> Olha como faz </h1>\n"
+		"</body>\n"
+		"</html>\r\n"
+	);
 }
 
 /**Argumento 1 indica a opção de execução: 
@@ -60,24 +36,15 @@ int main(int argc, char *argv[]) {
 	struct sockaddr_in server;
 
 	bind_socket(sockfd, porta, &server);
-	listen(sockfd, 10);
+	listen(sockfd, 712);
 
 	clientent client;
 	sckt_accept(sockfd, &client);
 
-	char *resp = sckt_recvn(client.sockfd, BUFF_SIZE);
-	printf("%s\n", resp); free(resp);
+	func_resp(client.sockfd);
 
 	del_socket(client.sockfd);
 	del_socket(sockfd);
+
     return 0;
 }
-
-
-/* Coisa de testar depois */
-/*
-	switch(opcao){
-		case 0: server(porta); break;
-		case 1: client("127.0.0.1", porta); break;
-	}
-*/

@@ -26,6 +26,19 @@ int new_socket(){
 		sckt_error("<Connect::new_socket()> "\
 					"Erro ao criar socket: ", errno);
 	}
+
+	int on = 1;
+	if( -1 == setsockopt(
+		sockfd, 
+		SOL_SOCKET, 
+		SO_REUSEADDR, 
+		&on, 
+		sizeof(int))
+	){
+		sckt_error("<Connect::new_socket()> "\
+					"Erro ao criar socket: ", errno);
+	}
+
 	return sockfd;
 }
 
@@ -253,8 +266,9 @@ char* sckt_recvn(int sockfd, size_t size){
 	// Variaveis que irão gerenciar o loop
 	int erro = 0;
 	int bytes_read = 0;
+	int count = 0;
 
-	while(bytes_read < size){
+	while(bytes_read < size && count != 1000){
 		erro = read(
 			sockfd, 
 			buffer + bytes_read, 
@@ -266,6 +280,68 @@ char* sckt_recvn(int sockfd, size_t size){
 				"Erro ao receber dados", errno);
 		}else{
 			bytes_read += erro;
+			count = 0;
+		}
+
+		printf("erro: %d\n", bytes_read);
+
+		count++;
+	}
+
+	return buffer;
+}
+
+/* Tratamento específico para o HTTP */
+int sckt_http_send(int sockfd, void *buffer){
+	int erro = 0;
+	int bytes_writen = 0;
+	size_t bufSize = strlen(buffer);
+
+	while(bytes_writen < bufSize){
+		erro = write(
+			sockfd, 
+			buffer + bytes_writen, 
+			bufSize - bytes_writen
+		);
+		
+		if(erro < 0){
+			sckt_error("<Connect::sckt_send> "\
+				"Erro ao enviar dados", errno);
+		}else{
+			bytes_writen += erro;
+		}
+	}
+	
+	return bytes_writen;
+}
+
+/**
+ * Recebe dados pelo socket
+ *? @params:
+ **   socket: Socket a receber o dado
+ **   size: O tamanho do dado a ser recebido
+ *
+ *! @return: É retornado um vetor com o conteúdo lido */
+char* sckt_http_recv(int sockfd, size_t bufSize){
+	// Criando o buffer
+	char *buffer = malloc(bufSize);
+
+	// Variaveis que irão gerenciar o loop
+	int erro = 0;
+	int bytes_read = 0;
+
+	while(bytes_read < bufSize){
+		erro = read(sockfd, buffer + bytes_read, PACK_SIZE);
+
+		if(erro < 0){
+			sckt_error("<Connect::sckt_recv> "
+				"Erro ao receber dados", errno);
+		}else{
+			bytes_read += erro;
+		}
+
+		if(buffer[bytes_read-1]=='\n' && buffer[bytes_read-2]=='\r'){
+			break;
 		}
 	}
 
