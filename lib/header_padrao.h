@@ -6,6 +6,7 @@
 	#include <stdlib.h>
 	#include <inttypes.h>
 	#include <time.h>
+	#include <string.h>
 
 	/* Bibliotacas de erros */
 	#include <errno.h>

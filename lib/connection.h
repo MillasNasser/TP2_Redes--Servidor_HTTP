@@ -33,7 +33,7 @@
     **   buffer: O dado a ser enviado
     *  
     *! @return: É retornado quantos bytes foram enviados */
-    int sckt_http_send(int sockfd, void *buffer);
+    int sckt_http_send(int sockfd, void *buffer, size_t bufTam);
     
     /** Recebe dados pelo socket
     *? @params:

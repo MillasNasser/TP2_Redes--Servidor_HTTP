@@ -292,10 +292,10 @@ char* sckt_recvn(int sockfd, size_t size){
 }
 
 /* Tratamento específico para o HTTP */
-int sckt_http_send(int sockfd, void *buffer){
+int sckt_http_send(int sockfd, void *buffer, size_t bufTam){
 	int erro = 0;
 	int bytes_writen = 0;
-	size_t bufSize = strlen(buffer);
+	size_t bufSize = bufTam;
 
 	while(bytes_writen < bufSize){
 		erro = write(

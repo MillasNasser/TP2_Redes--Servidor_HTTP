@@ -1,0 +1,102 @@
+/*
+Cores   
+https://coolors.co/d8dbe2-a9bcd0-58a4b0-373f51-daa49a 
+
+Fontes
+<link href="https://fonts.googleapis.com/css?family=Montserrat:300,700" rel="stylesheet">
+*/
+
+html, body {
+    margin: 0px;
+    padding: 0px;
+}
+
+.navigation ul {
+    margin: 0px;
+    padding: 0px;
+    list-style: none;
+    margin-right: 10px;
+}
+
+.navigation ul li {
+    display: inline-block;
+    background-color: #58A4B0;
+    margin-top: 10px;
+    padding-left: 30px;
+    padding-right: 30px;
+    line-height: 30px;
+    width: 80px;
+    text-align: center;
+    border-radius: 3px;
+}
+
+.navigation {
+    background-color: #373F51;
+    color: #D8DBE2;
+    height: 50px;
+    font-size: 16px;
+    font-weight: 300;
+    text-align: right;
+}
+
+body {
+    background-color: #D8DBE2;
+    font-size: 0px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.capa spam {
+    color: #58A4B0;
+    display: block;
+}
+
+.capa div {
+    display: inline-block;
+    height: 900px
+}
+
+.img-capa {
+    width: 40%;
+}
+
+.img-capa img {
+    margin-top: 25%;
+    margin-left: 27%;
+    width: 70%;
+    border-radius: 70%;
+}
+
+.texto-capa {
+    width: 60%;
+    vertical-align: top;
+    line-height: 48px;
+    text-transform: uppercase;
+}
+
+.texto-capa h1 {
+    font-size: 56px;
+    font-weight: 700;
+    margin-top: 35%;
+}
+
+.texto-capa h2 {
+    font-size: 16px;
+    font-weight: 300;
+    margin-left: .2%;
+    margin-top: -30px
+}
+
+.curriculo {
+    font-size: 16px;
+    margin-left: 2%;
+    line-height: 16px; 
+}
+
+.curriculo ul {
+    list-style: none;
+}
+
+.curriculo h3, p {
+    margin-top: -13px;
+    margin-bottom: 30px;
+}
