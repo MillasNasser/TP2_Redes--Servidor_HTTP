@@ -3,8 +3,47 @@
 
 // Bibliotecas importantes
 	#include "connection.h"
+	#include <pthread.h>
+
+// Macros
+	#define DIR "./sites"
 
 // Funções
+	/**Captura um erro.
+	*# @description: Função destinada a leitura dos bytes
+			do arquivo a ser enviado para o cliente.
+	*  
+	*? @params:
+	**   dir: Diretório do arquivo.
+		bytes: ponteiro onde será guardada
+			a referência para o vetor de bytes
+			correspondentes ao arquivo.
+	* 
+	*! @return:  */
+	int get_bytes(char *dir, char **bytes);
+
+	/**Captura um erro, finaliza o progrma e o exibe
+	*# @description: Função para tratamento direto 
+	*# 			das requisições http.
+	*  
+	*? @params:
+	**   sockfd: Descritor de arquivos vinculado ao socket
+			do cliente.
+	* 
+	*! @return:  */
+	void func_resp(int sockfd);
+
+	/**Captura um erro, finaliza o progrma e o exibe
+	*# @description: Função a ser executada pelas
+	*# 			threads para atender as requisições
+	*# 			http feitas pelo cliente.
+	*  
+	*? @params:
+	**   client_void: Informações sobre o socket do cliente.
+	* 
+	*! @return:  */
+	void *func_resp_thread(void *sockfd);
+
 	/**Captura um erro, finaliza o progrma e o exibe
 	*# @description: Servidor responsável por tratar as 
 	*# 		requisições na forma sequêncial, onde o
@@ -15,7 +54,7 @@
 	*  
 	*! @return:  */
 	void srv_thread(int port);
-	
+
 	/**Captura um erro, finaliza o progrma e o exibe
 	*# @description: Servidor responsável por tratar as 
 	*# 		requisições na forma de o servidor aceita uma

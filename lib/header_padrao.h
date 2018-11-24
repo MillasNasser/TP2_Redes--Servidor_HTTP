@@ -11,6 +11,9 @@
 	/* Bibliotacas de erros */
 	#include <errno.h>
 
+	/* Bibliotecas para o uso threads */
+	#include <pthread.h> 
+	
 	/* Bibliotecas de manipulação de Sockets */
 	#include <sys/socket.h>
 	#include <sys/types.h>

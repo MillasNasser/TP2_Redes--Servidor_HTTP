@@ -305,7 +305,7 @@ int sckt_http_send(int sockfd, void *buffer, size_t bufTam){
 		);
 		
 		if(erro < 0){
-			sckt_error("<Connect::sckt_send> "\
+			sckt_error("<Connect::sckt_http_send> "\
 				"Erro ao enviar dados", errno);
 		}else{
 			bytes_writen += erro;
@@ -334,7 +334,7 @@ char* sckt_http_recv(int sockfd, size_t bufSize){
 		erro = read(sockfd, buffer + bytes_read, PACK_SIZE);
 
 		if(erro < 0){
-			sckt_error("<Connect::sckt_recv> "
+			sckt_error("<Connect::sckt_http_recv> "
 				"Erro ao receber dados", errno);
 		}else{
 			bytes_read += erro;

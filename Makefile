@@ -17,6 +17,8 @@ LIBS :=
 #CFLAGS+= `pkg-config --cflags $(LIBS)`
 #LIBRARIES = `pkg-config --libs $(LIBS)`
 
+LIBRARIES = -lpthread
+
 #Compilation line
 COMPILE = $(CC) $(CFLAGS) $(INCLUDE_PATHS)
 
