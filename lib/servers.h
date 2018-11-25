@@ -3,7 +3,7 @@
 
 // Bibliotecas importantes
 	#include "connection.h"
-	#include <pthread.h>
+	#include "header_padrao.h"
 
 // Macros
 	#define DIR "./sites"

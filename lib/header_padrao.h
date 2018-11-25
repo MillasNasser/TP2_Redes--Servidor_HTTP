@@ -14,6 +14,9 @@
 	/* Bibliotecas para o uso threads */
 	#include <pthread.h> 
 	
+	/* Bibliotecas para o uso do select() */
+	#include <sys/select.h>
+
 	/* Bibliotecas de manipulação de Sockets */
 	#include <sys/socket.h>
 	#include <sys/types.h>

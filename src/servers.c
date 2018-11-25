@@ -191,7 +191,46 @@ void srv_thread(int port){
 *  
 *! @return:  */
 void srv_select(int port){
-	
+	int sockfd = new_socket();
+	struct sockaddr_in server;
+	pthread_t tid;
+
+	bind_socket(sockfd, port, &server);
+	listen(sockfd, 712);
+
+	int maior_fd = sockfd;
+	fd_set fdset;
+	FD_ZERO(&fdset);
+	FD_SET(sockfd, &fdset);
+
+	while(1) {
+		int nfds;
+		nfds = select(maior_fd + 1, &fdset, NULL, NULL, NULL);
+
+		if(nfds == -1) {
+			sckt_error("<Servers::srv_select> "\
+			"erro ao executar select()", errno);
+		} else {
+			clientent client;
+			for(int i = 0; i <= maior_fd; i++) {
+				if(i == sockfd) {
+					sckt_accept(sockfd, &client);
+					FD_SET(client.sockfd, &fdset);
+					if(maior_fd < client.sockfd) {
+						maior_fd = client.sockfd;	
+					}
+				} else {
+					if(FD_ISSET(i, &fdset)) {
+						func_resp(i);
+						FD_CLR(i, &fdset);
+						del_socket(i);
+					}
+				}
+			}
+		}
+	}
+
+	del_socket(sockfd);
 }
 
 /**Captura um erro, finaliza o progrma e o exibe
