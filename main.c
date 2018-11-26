@@ -8,19 +8,23 @@
  * 
  * Argumento 3 recebe o tipo de servidor a ser usado */
 int main(int argc, char *argv[]) {
-	if(argc != 4){ 
-		sckt_error("Nao ha parametros suficientes!", -1);
+	if(argc != 3){ 
+		printf("Execucao e feita por:"
+			"./main.out <TIPO SERVER> <PORTA>\n"
+			"<TIPO SERVER> pode ser:\n"
+			"\t0: Servidor sequencial\n"
+			"\t1: Servidor usando Threads\n"
+			"\t2: Servidor usando Select\n"
+			"\t3: Servidor usando Fila de Requisicoes\n"
+			"<PORTA> pode ser qualquer valor entre 0 e "
+			"65535.\nCaso houver um erro, mude o valor da porta\n"
+		); exit(-1);
 	}
 
-	int porta = atoi(argv[2]);
 	int opcao = atoi(argv[1]);
-	int serv_tipo = atoi(argv[3]);
+	int porta = atoi(argv[2]);
 
-	if(opcao != 0 && opcao != 1) {
-		sckt_error("Parâmetros errados!", -1);
-	}
-
-	switch(serv_tipo) {
+	switch(opcao) {
 		case 0:
 			srv_iterativo(porta);
 		break;

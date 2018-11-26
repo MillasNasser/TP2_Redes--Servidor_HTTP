@@ -7,17 +7,26 @@
 
 // Macros
 	#define DIR "./sites"
+	#define N_THREADS 3
+	
+	//! É possível atender apenas 2048 requisições
+	#define REQUEST_NUM 2048
+
+	typedef struct{
+		int estado; // 0: livre; 1: consumivel;
+		int sockfd;
+	} Fila_Socket;
 
 // Funções
 	/**Captura um erro.
 	*# @description: Função destinada a leitura dos bytes
-			do arquivo a ser enviado para o cliente.
+	*#		do arquivo a ser enviado para o cliente.
 	*  
 	*? @params:
-	**   dir: Diretório do arquivo.
-		bytes: ponteiro onde será guardada
-			a referência para o vetor de bytes
-			correspondentes ao arquivo.
+	**	dir: Diretório do arquivo.
+	**	bytes: ponteiro onde será guardada
+	**		a referência para o vetor de bytes
+	**		correspondentes ao arquivo.
 	* 
 	*! @return:  */
 	int get_bytes(char *dir, char **bytes);
@@ -27,8 +36,8 @@
 	*# 			das requisições http.
 	*  
 	*? @params:
-	**   sockfd: Descritor de arquivos vinculado ao socket
-			do cliente.
+	**	sockfd: Descritor de arquivos vinculado ao socket
+	**	do cliente.
 	* 
 	*! @return:  */
 	void func_resp(int sockfd);
@@ -39,7 +48,7 @@
 	*# 			http feitas pelo cliente.
 	*  
 	*? @params:
-	**   client_void: Informações sobre o socket do cliente.
+	**	client_void: Informações sobre o socket do cliente.
 	* 
 	*! @return:  */
 	void *func_resp_thread(void *sockfd);
@@ -50,7 +59,7 @@
 	*# 		servidor aceita a conexão e ele próprio responde
 	* 
 	*? @params:
-	**   port: Porta a ser escutada pelo server
+	**	port: Porta a ser escutada pelo server
 	*  
 	*! @return:  */
 	void srv_thread(int port);
@@ -61,7 +70,7 @@
 	*# 		conexão e cria uma thread para responder
 	* 
 	*? @params:
-	**   port: Porta a ser escutada pelo server
+	**	port: Porta a ser escutada pelo server
 	*  
 	*! @return:  */
 	void srv_select(int port);
@@ -73,7 +82,7 @@
 	*# 		consumida por um número finito de threads
 	*  
 	*? @params:
-	**   port: Porta a ser escutada pelo server
+	**	port: Porta a ser escutada pelo server
 	* 
 	*! @return:  */
 	void srv_iterativo(int port);
@@ -85,7 +94,7 @@
 	*# 		de usar uma API que evita o read ser bloqueante
 	* 
 	*? @params:
-	**   port: Porta a ser escutada pelo server
+	**	port: Porta a ser escutada pelo server
 	*  
 	*! @return:  */
 	void srv_fila_task(int port);

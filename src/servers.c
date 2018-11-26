@@ -1,6 +1,9 @@
 #include "servers.h"
 
-/**Captura um erro.
+/**********************************************************/
+/************ Tratamento do arquivo solicitado ************/
+/**********************************************************/
+/**Faz a leitura dos bytes de um arquivo para um vetor
 *# @description: Função destinada a leitura dos bytes
 		do arquivo a ser enviado para o cliente.
 *  
@@ -34,7 +37,11 @@ int get_bytes(char *dir, char **bytes) {
 	return num_bytes;
 }
 
-/**Captura um erro, finaliza o progrma e o exibe
+/*********************************************************/
+/************ Tratamento das requisições HTTP ************/
+/*********************************************************/
+
+/**Faz a resposta dos servidores para as requisições HTTP
 *# @description: Função para tratamento direto 
 *# 			das requisições http.
 *  
@@ -102,7 +109,7 @@ void func_resp(int sockfd) {
 	}
 }
 
-/**Captura um erro, finaliza o progrma e o exibe
+/**Realiza a resposta para o server de threads
 *# @description: Função a ser executada pelas
 *# 			threads para atender as requisições
 *# 			http feitas pelo cliente.
@@ -122,19 +129,10 @@ void *func_resp_thread(void *client_void) {
 	return NULL;
 }
 
-/**Captura um erro, finaliza o progrma e o exibe
-*# @description: Servidor responsável por tratar as 
-*# 		requisições na forma de o servidor aceita uma
-*# 		conexão e a adiciona à uma fila que será 
-*# 		consumida por um número finito de threads
-*  
-*? @params:
-**   port: Porta a ser escutada pelo server
-* 
-*! @return:  */
+/*********************************************************/
+/****************** Servidor Sequencial ******************/
+/*********************************************************/
 void srv_iterativo(int port){
-	char *resp;
-
 	int sockfd = new_socket();
 	struct sockaddr_in server;
 	// Associou o socket a porta
@@ -145,7 +143,7 @@ void srv_iterativo(int port){
 		clientent client;
 		sckt_accept(sockfd, &client);
 
-		/* Chamada da função que faz o tratamento da resposta */
+		func_resp(client.sockfd);
 
 		del_socket(client.sockfd); 
 	}
@@ -153,15 +151,9 @@ void srv_iterativo(int port){
 	del_socket(sockfd);
 }
 
-/**Captura um erro, finaliza o progrma e o exibe
-*# @description: Servidor responsável por tratar as 
-*# 		requisições na forma sequêncial, onde o
-*# 		servidor aceita a conexão e ele próprio responde
-* 
-*? @params:
-**   port: Porta a ser escutada pelo server
-*  
-*! @return:  */
+/*********************************************************/
+/************** Servidor utilizando Threads **************/
+/*********************************************************/
 void srv_thread(int port){
 
 	int sockfd = new_socket();
@@ -181,15 +173,9 @@ void srv_thread(int port){
 	del_socket(sockfd);
 }
 
-/**Captura um erro, finaliza o progrma e o exibe
-*# @description: Servidor responsável por tratar as 
-*# 		requisições na forma de o servidor aceita uma
-*# 		conexão e cria uma thread para responder
-* 
-*? @params:
-**   port: Porta a ser escutada pelo server
-*  
-*! @return:  */
+/*********************************************************/
+/************** Servidor utilizado o Select **************/
+/*********************************************************/
 void srv_select(int port){
 	int sockfd = new_socket();
 	struct sockaddr_in server;
@@ -233,32 +219,88 @@ void srv_select(int port){
 	del_socket(sockfd);
 }
 
-/**Captura um erro, finaliza o progrma e o exibe
-*# @description: Servidor responsável por tratar as 
-*# 		requisições na forma de o servidor acieta a
-*# 		conexão e ele mesmo a trata, com o diferencial
-*# 		de usar uma API que evita o read ser bloqueante
-* 
-*? @params:
-**   port: Porta a ser escutada pelo server
-*  
-*! @return:  */
-void srv_fila_task(int port){
-	char *resp;
+/**********************************************************/
+/************ Servidor com Fila de Requisições ************/
+/**********************************************************/
+int row_start = 0, row_end = 0;
+Fila_Socket fila_requisicao[REQUEST_NUM] = {0};
 
+pthread_mutex_t fila_mutex;
+pthread_cond_t fila_cond;
+
+void* consumidor(void *arg){
+	Fila_Socket client;
+	int id_thread = *(int*) arg;
+	while(1){
+		// Se não houver requisições vá dormir
+		if(row_end == row_start){
+			pthread_cond_wait(&fila_cond, &fila_mutex);
+		}
+
+		// pega a primeira requisição da fila ao acordar
+		if(pthread_mutex_trylock(&fila_mutex)){
+			client = fila_requisicao[row_start];
+			printf("Thread %d pegou a requisicao\n", id_thread);
+			row_start++;
+			row_start = row_start % REQUEST_NUM;
+			pthread_mutex_unlock(&fila_mutex);
+		}else{
+			printf("Thread %d nao deu lock\n", id_thread);
+			continue;
+		}
+
+		// Tratar a requisição ao pegá-la
+		func_resp(client.sockfd);
+		del_socket(client.sockfd); // removê-la da fila
+		client.estado = 0; //Definir a posição como vazia
+	}
+}
+
+void srv_fila_task(int port){
+	int i;
 	int sockfd = new_socket();
 	struct sockaddr_in server;
+
+	//memset(&fila_requisicao, 0, sizeof(Fila_Socket*)*REQUEST_NUM);
+	pthread_mutex_init(&fila_mutex, NULL);
+	pthread_cond_init(&fila_cond, NULL);
+
+	pthread_t *nthreads[N_THREADS];
+	for(i = 0; i < N_THREADS; i++){
+		int j = i;
+		printf("Disparando a thread %d\n", i);
+		pthread_create(&(nthreads[i]), NULL, consumidor, &j);
+	}
+
 	// Associou o socket a porta
 	bind_socket(sockfd, port, &server);
-
 	listen(sockfd, 10);
 	while(1){
+		// O número deve ser igual ao maximo REQUEST_NUM-1
+		if(row_end+1 == row_start) continue; //Mudar para wait
+
 		clientent client;
 		sckt_accept(sockfd, &client);
 
-		/* Chamada da função que faz o tratamento da resposta */
+		// Capturando as requisições a serem tratadas
+		pthread_mutex_lock(&fila_mutex);
+			// Ainda não foi consumido o dado
+			if(fila_requisicao[row_end].estado == 1){
+				// Chamando outra thread para ajudar
+				pthread_cond_signal(&fila_cond);
+				pthread_mutex_unlock(&fila_mutex);
+				continue;
+			}
 
-		del_socket(client.sockfd); 
+			// Adicionando a requisição à fila
+			fila_requisicao[row_end].sockfd = client.sockfd;
+			fila_requisicao[row_end].estado = 1;
+			row_end++;
+			row_end = row_end % REQUEST_NUM;
+
+			// Enviando sinal a uma thread consumidora
+			pthread_cond_signal(&fila_cond);
+		pthread_mutex_unlock(&fila_mutex);
 	}
 
 	del_socket(sockfd);
