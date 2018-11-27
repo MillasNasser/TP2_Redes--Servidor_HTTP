@@ -166,8 +166,7 @@ void srv_thread(int port){
 		clientent *client = malloc(sizeof(clientent));
 		sckt_accept(sockfd, client);
 		
-		pthread_create(&tid, NULL, func_resp_thread, (void *) client); 
-    	pthread_join(tid, NULL);
+		pthread_create(&tid, NULL, func_resp_thread, (void *) client);
 	}
 
 	del_socket(sockfd);
@@ -222,37 +221,28 @@ void srv_select(int port){
 /**********************************************************/
 /************ Servidor com Fila de Requisições ************/
 /**********************************************************/
-int row_start = 0, row_end = 0;
+int topo = -1;
 Fila_Socket fila_requisicao[REQUEST_NUM] = {0};
 
 pthread_mutex_t fila_mutex;
-pthread_cond_t fila_cond;
+pthread_cond_t produ, consu;
 
 void* consumidor(void *arg){
-	Fila_Socket client;
 	int id_thread = *(int*) arg;
 	while(1){
-		// Se não houver requisições vá dormir
-		if(row_end == row_start){
-			pthread_cond_wait(&fila_cond, &fila_mutex);
-		}
-
-		// pega a primeira requisição da fila ao acordar
-		if(pthread_mutex_trylock(&fila_mutex)){
-			client = fila_requisicao[row_start];
-			printf("Thread %d pegou a requisicao\n", id_thread);
-			row_start++;
-			row_start = row_start % REQUEST_NUM;
-			pthread_mutex_unlock(&fila_mutex);
-		}else{
-			printf("Thread %d nao deu lock\n", id_thread);
-			continue;
-		}
-
-		// Tratar a requisição ao pegá-la
-		func_resp(client.sockfd);
-		del_socket(client.sockfd); // removê-la da fila
-		client.estado = 0; //Definir a posição como vazia
+		Fila_Socket cliente = (Fila_Socket){0};
+		pthread_mutex_lock(&fila_mutex);
+			while(topo == -1){
+				pthread_cond_wait(&consu, &fila_mutex);
+			}
+			cliente = fila_requisicao[topo];
+			topo--;
+			pthread_cond_signal(&produ);
+		pthread_mutex_unlock(&fila_mutex);
+		
+		func_resp(cliente.sockfd);
+		del_socket(cliente.sockfd);
+		
 	}
 }
 
@@ -260,46 +250,40 @@ void srv_fila_task(int port){
 	int i;
 	int sockfd = new_socket();
 	struct sockaddr_in server;
+	int thread_id[N_THREADS];
 
-	//memset(&fila_requisicao, 0, sizeof(Fila_Socket*)*REQUEST_NUM);
 	pthread_mutex_init(&fila_mutex, NULL);
-	pthread_cond_init(&fila_cond, NULL);
+	pthread_cond_init(&produ, NULL);
+	pthread_cond_init(&consu, NULL);
 
 	pthread_t *nthreads[N_THREADS];
 	for(i = 0; i < N_THREADS; i++){
-		int j = i;
-		printf("Disparando a thread %d\n", i);
-		pthread_create(&(nthreads[i]), NULL, consumidor, &j);
+		thread_id[i] = i;
+		pthread_create(&(nthreads[i]), NULL, consumidor, &(thread_id[i]));
 	}
 
 	// Associou o socket a porta
 	bind_socket(sockfd, port, &server);
 	listen(sockfd, 10);
 	while(1){
-		// O número deve ser igual ao maximo REQUEST_NUM-1
-		if(row_end+1 == row_start) continue; //Mudar para wait
+		// Caso completar a pilha de requisições o 
+		// produtor vai dormir
+		pthread_mutex_lock(&fila_mutex);
+		while((topo + 1) == REQUEST_NUM){
+			pthread_cond_wait(&produ, &fila_mutex);
+		}
+		pthread_mutex_unlock(&fila_mutex);
 
 		clientent client;
 		sckt_accept(sockfd, &client);
 
-		// Capturando as requisições a serem tratadas
+		// Realiza a entrada de uma conexão e
+		// a adiciona à pilha de requisições
 		pthread_mutex_lock(&fila_mutex);
-			// Ainda não foi consumido o dado
-			if(fila_requisicao[row_end].estado == 1){
-				// Chamando outra thread para ajudar
-				pthread_cond_signal(&fila_cond);
-				pthread_mutex_unlock(&fila_mutex);
-				continue;
-			}
-
-			// Adicionando a requisição à fila
-			fila_requisicao[row_end].sockfd = client.sockfd;
-			fila_requisicao[row_end].estado = 1;
-			row_end++;
-			row_end = row_end % REQUEST_NUM;
-
-			// Enviando sinal a uma thread consumidora
-			pthread_cond_signal(&fila_cond);
+			topo++;
+			fila_requisicao[topo].sockfd = client.sockfd;
+			fila_requisicao[topo].estado = 1;
+			pthread_cond_signal(&consu);
 		pthread_mutex_unlock(&fila_mutex);
 	}
 

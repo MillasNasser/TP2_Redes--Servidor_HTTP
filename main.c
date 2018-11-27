@@ -27,23 +27,23 @@ int main(int argc, char *argv[]) {
 	switch(opcao) {
 		case 0:
 			srv_iterativo(porta);
-		break;
+			break;
 
 		case 1:
 			srv_thread(porta);
-		break;
+			break;
 
 		case 2:
 			srv_select(porta);
-		break;
+			break;
 
 		case 3:
 			srv_fila_task(porta);
-		break;
+			break;
 
 		default:
 			sckt_error("Parâmetros errados!", -1);
-		break;
+			break;
 	}
 
     return 0;
